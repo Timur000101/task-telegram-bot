@@ -21,7 +21,9 @@ import {
   yesNoTaskAcceptButtons,
   yesNoAddTaskKeyboard,
   yesNoAddPunishmentKeyboard,
-  yesNoPunishmentAcceptButtons
+  yesNoPunishmentAcceptButtons,
+  yesNoRemoveTaskKeyboard,
+  yesNoRemovePunishmentKeyboard
 } from "./src/keyboards"
 
 import { 
@@ -126,7 +128,11 @@ bot.hears('Список пользователей', async ctx => {
 
   let result = ''
   for (let i = 0; i < users.length; i++) {
-    result = result + `[${i+1}] ${users[i].name} - ${moment(users[i].date).format('MMMM Do YYYY, h:mm:ss a')}\n`
+    if (users[i].baned === true) {
+      result = result = result + `[${i+1}] ${users[i].name} - ${moment(users[i].date).format('MM/DD/YYYY')} - заблокирован(а)\n`
+    } else {
+      result = result + `[${i+1}] ${users[i].name} - ${moment(users[i].date).format('MM/DD/YYYY')}\n`
+    }
   }
   ctx.replyWithHTML(
     '<b>Список пользователей:</b>\n\n'+
@@ -182,6 +188,7 @@ bot.hears('Добавить задачу', ctx => {
       yesNoAddTaskKeyboard()
     )
   })
+  ctx.deleteMessage()
 })
 // Add Task inlineKeyboard
 bot.action(['addTask', 'notAddTask'], ctx => {
@@ -195,18 +202,28 @@ bot.action(['addTask', 'notAddTask'], ctx => {
 })
 // Remove Task by Id
 bot.hears('Удалить задачу', ctx => {
-  ctx.replyWithHTML(
-    'Введите фразу <i>"удалить задачу `порядковый номер задачи`"</i>, чтобы удалить задачу,\n'+
-    'например, <b>"удалить задачу 3"</b>:'
-  )
+  ctx.replyWithHTML('Напишите порядковый номер задачи:')
+  bot.on('text', ctx => {
+    ctx.session.taskId = ctx.message.text
+    ctx.replyWithHTML(
+      `Вы действительно хотите удалить задачу:\n\n`+
+      `<i>${ctx.message.text}</i>`,
+      yesNoRemoveTaskKeyboard()
+    )
+  })
+  ctx.deleteMessage()
 })
 
-bot.hears(/^Удалить задачу\s(\d+)$/, ctx => {
-  const id = Number(+/\d+/.exec(ctx.message.text)) - 1
-  removeTask(id+1)
-  ctx.reply('Ваша задача успешно удалена')
+bot.action(['removeTask', 'notRemoveTask'], ctx => {
+  if (ctx.callbackQuery.data === 'removeTask') {
+    console.log(ctx.session.taskId);
+    removeTask(ctx.session.taskId)
+    ctx.editMessageText('Ваша задача успешно удалено')
+  } else {
+    ctx.deleteMessage()
+    ctx.replyWithHTML(`Выбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
+  }
 })
-
 
 bot.hears('Наказания', ctx => {
   ctx.replyWithHTML('<b>Выберите действие!</b>', getPunishmentAdminMenu())
@@ -227,7 +244,7 @@ bot.hears('Список наказаний', async ctx => {
     result = result + `[${punishments[i].punishmentId}] ${punishments[i].text}\n`
   }
   ctx.replyWithHTML(
-    '<b>Список ваших задач:</b>\n\n'+
+    '<b>Список ваших наказаний:</b>\n\n'+
     `${result}`
   )
 })
@@ -257,17 +274,27 @@ bot.action(['addPunishment', 'notaddPunishment'], ctx => {
 })
 
 bot.hears('Удалить наказание', ctx => {
-  ctx.replyWithHTML(
-    'Введите фразу <i>"удалить наказание `порядковый номер задачи`"</i>, чтобы удалить наказание,\n'+
-    'например, <b>"удалить наказание 3"</b>:'
-  )
+  ctx.replyWithHTML('Напишите порядковый номер наказание:')
+  bot.on('text', ctx => {
+    ctx.session.punishmentId = ctx.message.text
+    ctx.replyWithHTML(
+      `Вы действительно хотите удалить наказание:\n\n`+
+      `<i>${ctx.message.text}</i>`,
+      yesNoRemovePunishmentKeyboard()
+    )
+  })
   ctx.deleteMessage()
 })
 
-bot.hears(/^Удалить наказание\s(\d+)$/, ctx => {
-  const id = Number(+/\d+/.exec(ctx.message.text))
-  removePunishment(id)
-  ctx.reply('Ваше наказание успешно удалено')
+bot.action(['removePunishment', 'notRemovePunishment'], ctx => {
+  if (ctx.callbackQuery.data === 'removePunishment') {
+    console.log(ctx.session.punishmentId);
+    removePunishment(ctx.session.punishmentId)
+    ctx.editMessageText('Ваша наказание успешно удалено')
+  } else {
+    ctx.deleteMessage()
+    ctx.replyWithHTML(`Выбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
+  }
 })
 
 // Client action

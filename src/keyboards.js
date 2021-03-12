@@ -46,10 +46,24 @@ export function yesNoAddTaskKeyboard() {
   ], { columns: 2 }).extra()
 }
 
+export function yesNoRemoveTaskKeyboard() {
+  return Markup.inlineKeyboard([
+    Markup.callbackButton('Да', 'removeTask'),
+    Markup.callbackButton('Нет', 'notRemoveTask')
+  ], { columns: 2 }).extra()
+}
+
 export function yesNoAddPunishmentKeyboard() {
   return Markup.inlineKeyboard([
     Markup.callbackButton('Да', 'addPunishment'),
     Markup.callbackButton('Нет', 'notAddPunishment')
+  ], { columns: 2 }).extra()
+}
+
+export function yesNoRemovePunishmentKeyboard() {
+  return Markup.inlineKeyboard([
+    Markup.callbackButton('Да', 'removePunishment'),
+    Markup.callbackButton('Нет', 'notRemovePunishment')
   ], { columns: 2 }).extra()
 }
 
