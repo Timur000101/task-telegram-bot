@@ -39,33 +39,30 @@ export function getUserMenu() {
   ]).resize().extra()
 }
 
-export function yesNoAddTaskKeyboard() {
-  return Markup.inlineKeyboard([
-    Markup.callbackButton('Да', 'addTask'),
-    Markup.callbackButton('Нет', 'notAddTask')
-  ], { columns: 2 }).extra()
-}
+export const yesNoBlockUserKeyboard = Markup.inlineKeyboard([
+  Markup.callbackButton('Да', 'blockUser'),
+  Markup.callbackButton('Нет', 'notBlockUser')
+])
 
-export function yesNoRemoveTaskKeyboard() {
-  return Markup.inlineKeyboard([
-    Markup.callbackButton('Да', 'removeTask'),
-    Markup.callbackButton('Нет', 'notRemoveTask')
-  ], { columns: 2 }).extra()
-}
+export const yesNoAddTaskKeyboard = Markup.inlineKeyboard([
+  Markup.callbackButton('Да', 'addTask'),
+  Markup.callbackButton('Нет', 'notAddTask')
+])
 
-export function yesNoAddPunishmentKeyboard() {
-  return Markup.inlineKeyboard([
-    Markup.callbackButton('Да', 'addPunishment'),
-    Markup.callbackButton('Нет', 'notAddPunishment')
-  ], { columns: 2 }).extra()
-}
+export const yesNoRemoveTaskKeyboard = Markup.inlineKeyboard([
+  Markup.callbackButton('Да', 'removeTask'),
+  Markup.callbackButton('Нет', 'notRemoveTask')
+])
 
-export function yesNoRemovePunishmentKeyboard() {
-  return Markup.inlineKeyboard([
-    Markup.callbackButton('Да', 'removePunishment'),
-    Markup.callbackButton('Нет', 'notRemovePunishment')
-  ], { columns: 2 }).extra()
-}
+export const yesNoAddPunishmentKeyboard = Markup.inlineKeyboard([
+  Markup.callbackButton('Да', 'addPunishment'),
+  Markup.callbackButton('Нет', 'notAddPunishment')
+])
+
+export const yesNoRemovePunishmentKeyboard = Markup.inlineKeyboard([
+  Markup.callbackButton('Да', 'removePunishment'),
+  Markup.callbackButton('Нет', 'notRemovePunishment')
+])
 
 export const yesNoTaskAcceptButtons = Markup.inlineKeyboard([
   Markup.callbackButton('Принимаю', 'acceptTask'),
