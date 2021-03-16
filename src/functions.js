@@ -5,7 +5,7 @@ const Task = require("./models/task")
 const User = require("./models/user")
 const Punishment = require("./models/punishment")
 
-const { getMenuWhenUserHavePunish } = require("./keyboards")
+const { getMenuWhenUserHavePunish, getMenuWhenUserNotHavePunish } = require("./keyboards")
 
 const { DB_URL, BOT_URL } = require("./const")
 const bot = new Telegraf(BOT_URL)
@@ -69,35 +69,46 @@ function getRandomInt(max){
 
 function hasPunishmentStart() {
     console.log("Привет мир");
-
     var job = new CronJob('0 0 0 * * *', async function() {
         console.log("Punishment is wroked");
 
-        var  users = await User.find((error, data) => {
-            if (error) {
-                console.log(error)
-            } else {
-                return data
-            }
-        })
+        var  users = await User.find({ admin: false, baned: false, hasPunishment: true })
 
-        var punishments = await Punishment.find((error, data) => {
-            if (error) {
-                console.log(error)
-            } else {
-                return data
+        var punishments = await Punishment.find({ status: true })
+        
+        var outArray = []; 
+        var i = 0;
+        var countNum = punishments.length;
+        var max = punishments.length;
+        var min = 0;
+        while(i < countNum){
+            var chislo = Math.floor((Math.random()*max) + min); 
+            if(find(outArray, chislo)==0){
+                outArray[i] = chislo;
+                i++;
             }
-        })
+            
+        }
+        
+        function find(array, value) {
+            for(var i=0; i<array.length; i++) {
+                if (array[i] == value) return 1;
+            }
+            return 0;
+        }
+
+        console.log(punishments.length, "Punishment length");
+        console.log(users.length, "User length");
+
         for ( let i = 0; i < users.length; i++ ) {
-            const randomIndex = getRandomInt(punishments.length)
-            console.log("Random", randomIndex);
-            if ( users[i].taskIsDone === false && users[i].baned === false ) {
-                console.log("User task is not finish");
+            // const randomIndex = getRandomInt(punishments.length)
+            if ( users[i].taskIsDone === false && users[i].baned === false) {
+                console.log("User task is not finish")
                 await User.updateOne({ name: users[i].name }, { $set: { hasPunishment: true } })
-                if(punishments[randomIndex].status === true && users[i].admin === false && users[i].baned === false) {
-                    console.log("Punishment send message");
-                    await bot.telegram.sendMessage(users[i].chatId, `Вы не успели во время сдать!\nВаше наказание - "${punishments[randomIndex].text}"`, getMenuWhenUserHavePunish())
-                    await Punishment.updateOne({ _id: punishments[randomIndex]._id }, { $set: {status: false} })
+                if(users[i].admin === false && users[i].baned === false) {
+                    console.log("Punishment send message", outArray[i]);
+                    await bot.telegram.sendMessage(users[i].chatId, `Вы не успели во время сдать!\nВаше наказание - "${punishments[outArray[i]].text}"`, getMenuWhenUserHavePunish())
+                    await Punishment.updateOne({ _id: punishments[outArray[i]]._id }, { $set: {status: false} })
                 }
             }
         }
@@ -107,37 +118,43 @@ function hasPunishmentStart() {
 
 function startSendTask() {
     console.log("StartSendTask");
-  var job = new CronJob('0 32 14 * * *', async function() {
+  var job = new CronJob('0 0 12 * * *', async function() {
     console.log("Cron job worked");
     // get all Users
-     var users = await User.find((error, data) => {
-      if(error) {
-        console.log(error)
-      } else {
-        return data
-      }
-    })
-
+     var users = await User.find({ admin: false, baned: false, hasPunishment: false})
     // get all Tasks
-    var tasks = await Task.find((error, data) => {
-      if(error) {
-        console.log(error);
-      } else {
-        return data
-      }
-    })
+    var tasks = await Task.find({ status: true })
 
-    for (let i = 0; i < users.length; i++) {
-      // const randomIndex = Math.round(0 - 0.5 + Math.random() * ((tasks.length - 1) - 0 + 1))
-      console.log(getRandomInt(tasks.length - 1));
-      const randomIndex = getRandomInt(tasks.length - 1)
-      if(tasks[randomIndex].status === true && users[i].admin === false && users[i].baned === false) {
-        await bot.telegram.sendMessage(users[i].chatId, `Задание на сегодня - "${tasks[randomIndex].text}"${emoji.get('smile')}`)
-        await Task.updateOne({ _id: tasks[randomIndex]._id }, { $set: {status: false} })
-        await User.updateOne({ name: users[i].name }, { $set: { taskIsDone: false } })
-      }
+    var outArray = []; 
+    var i = 0;
+    var countNum = tasks.length;
+    var max = tasks.length;
+    var min = 0;
+    while(i < countNum){
+        var chislo = Math.floor((Math.random()*max) + min); 
+        if(find(outArray, chislo)==0){
+            outArray[i] = chislo;
+            i++;
+        }
+        
     }
     
+    function find(array, value) {
+        for(var i=0; i<array.length; i++) {
+            if (array[i] == value) return 1;
+        }
+        return 0;
+    }
+
+    console.log(tasks.length, "Tasks length");
+    console.log(users.length, "User length")
+
+    for (let i = 0; i < users.length; i++) {
+        console.log("User send Task");
+        bot.telegram.sendMessage(users[i].chatId, `Задание на сегодня - "${tasks[outArray[i]].text}"${emoji.get('smile')}`, getMenuWhenUserNotHavePunish())
+        await Task.updateOne({ _id: tasks[outArray[i]]._id }, { $set: {status: false} })
+        await User.updateOne({ name: users[i].name }, { $set: { taskIsDone: false } })
+    }
   }, null, true);
   
   job.start();

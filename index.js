@@ -16,7 +16,6 @@ const {
   getUsersAdminMenu, 
   getTasksAdminMenu,
   getPunishmentAdminMenu,
-  getMenuWhenUserNotHavePunish,
   yesNoTaskAcceptButtons,
   yesNoAddTaskKeyboard,
   yesNoAddPunishmentKeyboard,
@@ -63,7 +62,7 @@ bot.start(async ctx => {
   if(!user) {
     User.create({ chatId: chatId, name: userName, userId: users.length + 1 })
     ctx.replyWithHTML(`
-    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`, getMenuWhenUserNotHavePunish())
+    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`)
   } else if (user.admin === true) {
     ctx.replyWithHTML(`
     Привет <b>Администратор!</b>\nВыбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
@@ -71,7 +70,7 @@ bot.start(async ctx => {
     ctx.reply(`Извините Вы заблокированы!`)
   } else if (user.hasPunishment === false) {
     ctx.replyWithHTML(`
-    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`, getMenuWhenUserNotHavePunish())
+    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`)
   }
 })
 
@@ -246,7 +245,7 @@ bot.on('text', ctx => {
     console.log('Remove', ctx.session.sendText);
     ctx.replyWithHTML(
       `Вы действительно хотите удалить задачу:\n\n`+
-      `<i>${ctx.message.sendText}</i>`,
+      `<i>${ctx.session.sendText}</i>`,
       {
         reply_markup: yesNoRemoveTaskKeyboard
       }
@@ -281,9 +280,11 @@ bot.action(['blockUser', 'notBlockUser'], ctx => {
   }
 })
 // Add punishment action
-bot.action(['addPunishment', 'notaddPunishment'], ctx => {
+bot.action(['addPunishment', 'notaddPunishment'], async ctx => {
+  const punishments = await Punishment.find()
+
   if(ctx.callbackQuery.data === 'addPunishment') {
-    addPunishment(ctx.session.punishmentsLength, ctx.session.sendText)
+    addPunishment(punishments.length, ctx.session.sendText)
     ctx.editMessageText('Ваша наказание успешно создано')
   } else {
     ctx.deleteMessage()
@@ -301,9 +302,11 @@ bot.action(['removePunishment', 'notRemovePunishment'], ctx => {
   }
 })
 // Add task action
-bot.action(['addTask', 'notAddTask'], ctx => {
+bot.action(['addTask', 'notAddTask'], async ctx => {
+  const tasks = await Task.find()
+
   if (ctx.callbackQuery.data === 'addTask') {
-    addTask(ctx.session.taskLength, ctx.session.sendText)
+    addTask(tasks.length, ctx.session.sendText)
     ctx.editMessageText('Ваша задача успешно добавлена')
   } else {
     ctx.deleteMessage()
@@ -329,13 +332,14 @@ bot.action(['acceptTask', 'notAcceptTask'], async ctx => {
   const user = await User.findOne({ name: userName })
 
   if(ctx.callbackQuery.data === 'acceptTask') {
-    bot.telegram.sendMessage(user.chatId, `Ваше задание принято ждите слдщ задание!)`)
+    bot.telegram.sendMessage(user.chatId, `Ваше задание принято, ждите следующее задание!)`, {reply_markup : { remove_keyboard: true }})
     await User.updateOne({ name: userName }, { $set: { taskIsDone: true } })
-    ctx.replyWithHTML(`<b>Задание принято!</b>`)
+    ctx.replyWithHTML(`<b>Задание принято!</b>`),
     ctx.deleteMessage()
+
   } else {
     // await User.updateOne({ name: userName }, { $set: { hasPunishment: true } })
-    bot.telegram.sendMessage(user.chatId, `Вашу задачу не принял, повторите попытку! :(`), 
+    bot.telegram.sendMessage(user.chatId, `Вашу задачу не приняли, повторите попытку! :(`), 
     ctx.replyWithHTML(`Выбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
     ctx.deleteMessage()
   }
@@ -348,13 +352,14 @@ bot.action(['acceptPunishment', 'notAcceptPunishment'], async ctx => {
   const user = await User.findOne({ name: userName })
 
   if(ctx.callbackQuery.data === 'acceptPunishment') {
-    bot.telegram.sendMessage(user.chatId, `Ваше наказание принято, ждите задание!)`)
+    bot.telegram.sendMessage(user.chatId, `Ваше наказание принято, ждите задание!)`, {reply_markup : { remove_keyboard: true }} )
     await User.updateOne({ name: userName }, { $set: { taskIsDone: true } })
     await User.updateOne({ name: userName }, { $set: { hasPunishment: false } })
     ctx.replyWithHTML(`<b>Наказание принято!</b>`)
     ctx.deleteMessage()
+    
   } else {
-    bot.telegram.sendMessage(user.chatId, `Ваш задание не принял, повторите попытку! :(`)
+    bot.telegram.sendMessage(user.chatId, `Ваш задание не приняли, повторите попытку! :(`)
     await User.updateOne({ name: userName }, { $set: { hasPunishment: true } })
     ctx.replyWithHTML(`Выбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
     ctx.deleteMessage()
