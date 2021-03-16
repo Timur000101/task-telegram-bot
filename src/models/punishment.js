@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 const { Schema } = mongoose
 
 const Punishment = Schema({
@@ -7,13 +7,4 @@ const Punishment = Schema({
     text: { type: String }
 })
 
-export default mongoose.model('Punishment', Punishment)
-
-
-// ctx.telegram.sendMessage(ctx.chat.id, `Вы действительно хотите добавить наказание`, {
-    //   reply_markup: {
-    //     inline_keyboard: [
-    //       [{text: 'Да', callback_data: "yesAddPunishment"}, {text: "Нет", callback_data: "noAddPunishment"}]
-    //     ]
-    //   }
-//     })
+module.exports = mongoose.model('Punishment', Punishment)

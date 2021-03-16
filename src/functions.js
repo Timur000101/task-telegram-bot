@@ -1,21 +1,21 @@
-import Telegraf from "telegraf"
+const {Telegraf} = require("telegraf")
 const CronJob = require('cron').CronJob
 const emoji = require('node-emoji')
-import Task from "./models/task"
-import User from "./models/user"
-import Punishment from "./models/punishment"
+const Task = require("./models/task")
+const User = require("./models/user")
+const Punishment = require("./models/punishment")
 
-import { getMenuWhenUserHavePunish } from "./keyboards"
+const { getMenuWhenUserHavePunish } = require("./keyboards")
 
-import { DB_URL, BOT_URL } from "./const"
+const { DB_URL, BOT_URL } = require("./const")
 const bot = new Telegraf(BOT_URL)
 
 
-export function addTask(id, text) {
+function addTask(id, text) {
     Task.create({ taskId: id, text: text })
 }
 
-export async function removeTask(id) {
+async function removeTask(id) {
     await Task.deleteOne({ taskId: { $gte: id }})
     .then(async function() {
         const tasks = await Task.find()
@@ -34,16 +34,16 @@ export async function removeTask(id) {
     })
 }
 
-export async function removeUser(id) {
+async function removeUser(id) {
     const user = await User.findOne({ userId: id })
     await User.updateOne({userId: user.userId}, { $set: { baned: true } })
 }
 
-export function addPunishment(id, text) {
+function addPunishment(id, text) {
     Punishment.create({ punishmentId: id, text: text })
 }
 
-export async function removePunishment(id) {
+async function removePunishment(id) {
     await Punishment.deleteOne({ punishmentId: { $gte: id } })
     .then(async function() {
         const punishments = await Punishment.find()
@@ -67,7 +67,7 @@ function getRandomInt(max){
     return Math.floor(Math.random() * Math.floor(max))
 }
 
-export function hasPunishmentStart() {
+function hasPunishmentStart() {
     console.log("Привет мир");
 
     var job = new CronJob('0 0 0 * * *', async function() {
@@ -105,7 +105,7 @@ export function hasPunishmentStart() {
     job.start();
 }
 
-export function startSendTask() {
+function startSendTask() {
     console.log("StartSendTask");
   var job = new CronJob('0 32 14 * * *', async function() {
     console.log("Cron job worked");
@@ -141,4 +141,14 @@ export function startSendTask() {
   }, null, true);
   
   job.start();
+}
+
+module.exports = {
+    addTask,
+    removeTask,
+    removeUser,
+    addPunishment,
+    removePunishment,
+    hasPunishmentStart,
+    startSendTask
 }

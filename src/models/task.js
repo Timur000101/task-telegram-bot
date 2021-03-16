@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 const { Schema } = mongoose
 
 const Task = new Schema({
@@ -7,4 +7,4 @@ const Task = new Schema({
   text: { type: String }
 })
 
-export default mongoose.model('Task', Task)
+module.exports = mongoose.model('Task', Task)

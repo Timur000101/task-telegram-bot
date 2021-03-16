@@ -1,17 +1,17 @@
-import Telegraf from "telegraf"
-import session from 'telegraf/session.js'
-import mongoose from "mongoose"
+const {Telegraf} = require("telegraf")
+const session = require('telegraf/session.js')
+const mongoose = require("mongoose")
 const emoji = require('node-emoji')
-import moment from "moment"
+const moment = require("moment")
 moment.locale('ru')
-// import constants
-import { DB_URL, BOT_URL } from "./src/const"
-// import models
-import User from "./src/models/user"
-import Task from "./src/models/task"
-import Punishment from "./src/models/punishment"
-// import keyboard functions
-import { 
+// const constants
+const { DB_URL, BOT_URL } = require("./src/const")
+// const models
+const User = require("./src/models/user")
+const Task = require("./src/models/task")
+const Punishment = require("./src/models/punishment")
+// const keyboard functions
+const { 
   getMainAdminMenu, 
   getUsersAdminMenu, 
   getTasksAdminMenu,
@@ -24,9 +24,9 @@ import {
   yesNoRemoveTaskKeyboard,
   yesNoRemovePunishmentKeyboard,
   yesNoBlockUserKeyboard
-} from "./src/keyboards"
+} = require("./src/keyboards")
 
-import { 
+const { 
   addTask, 
   removeTask, 
   removeUser, 
@@ -34,7 +34,7 @@ import {
   removePunishment,
   hasPunishmentStart,
   startSendTask
-} from "./src/functions"
+} = require("./src/functions")
 
 // Initialization Telegraf constructor
 const bot = new Telegraf(BOT_URL)

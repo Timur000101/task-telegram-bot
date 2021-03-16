@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 const { Schema } = mongoose
 
 const User = new Schema({
@@ -12,4 +12,4 @@ const User = new Schema({
   hasPunishment: { type: Boolean, default: false }
 });
 
-export default mongoose.model('User', User)
+module.exports = mongoose.model('User', User)

@@ -1,6 +1,6 @@
-import Markup from 'telegraf/markup'
+const Markup = require('telegraf/markup')
 
-export function getMainAdminMenu() {
+function getMainAdminMenu() {
   return Markup.keyboard([
     ['Пользователи'],
     ['Наказания'],
@@ -8,7 +8,7 @@ export function getMainAdminMenu() {
   ]).resize().extra()
 }
 
-export function getUsersAdminMenu() {
+function getUsersAdminMenu() {
   return Markup.keyboard([
     ['Список пользователей'],
     ['Заблокировать'],
@@ -16,7 +16,7 @@ export function getUsersAdminMenu() {
   ]).resize().extra()
 }
 
-export function getTasksAdminMenu() {
+function getTasksAdminMenu() {
   return Markup.keyboard([
     ['Список задач'],
     ['Удалить задачу', 'Добавить задачу'],
@@ -24,7 +24,7 @@ export function getTasksAdminMenu() {
   ]).resize().extra()
 }
 
-export function getPunishmentAdminMenu() {
+function getPunishmentAdminMenu() {
   return Markup.keyboard([
     ['Список наказаний'],
     ['Удалить наказание', 'Добавить наказание'],
@@ -32,49 +32,65 @@ export function getPunishmentAdminMenu() {
   ]).resize().extra()
 }
 
-export function getMenuWhenUserNotHavePunish() {
+function getMenuWhenUserNotHavePunish() {
   return Markup.keyboard([
     ['Отправить задание'],
   ]).resize().extra()
 }
 
-export function getMenuWhenUserHavePunish() {
+function getMenuWhenUserHavePunish() {
   return Markup.keyboard([
     ['Отправить наказание']
   ]).resize().extra()
 }
 
-export const yesNoBlockUserKeyboard = Markup.inlineKeyboard([
+const yesNoBlockUserKeyboard = Markup.inlineKeyboard([
   Markup.callbackButton('Да', 'blockUser'),
   Markup.callbackButton('Нет', 'notBlockUser')
 ])
 
-export const yesNoAddTaskKeyboard = Markup.inlineKeyboard([
+const yesNoAddTaskKeyboard = Markup.inlineKeyboard([
   Markup.callbackButton('Да', 'addTask'),
   Markup.callbackButton('Нет', 'notAddTask')
 ])
 
-export const yesNoRemoveTaskKeyboard = Markup.inlineKeyboard([
+const yesNoRemoveTaskKeyboard = Markup.inlineKeyboard([
   Markup.callbackButton('Да', 'removeTask'),
   Markup.callbackButton('Нет', 'notRemoveTask')
 ])
 
-export const yesNoAddPunishmentKeyboard = Markup.inlineKeyboard([
+const yesNoAddPunishmentKeyboard = Markup.inlineKeyboard([
   Markup.callbackButton('Да', 'addPunishment'),
   Markup.callbackButton('Нет', 'notAddPunishment')
 ])
 
-export const yesNoRemovePunishmentKeyboard = Markup.inlineKeyboard([
+const yesNoRemovePunishmentKeyboard = Markup.inlineKeyboard([
   Markup.callbackButton('Да', 'removePunishment'),
   Markup.callbackButton('Нет', 'notRemovePunishment')
 ])
 
-export const yesNoTaskAcceptButtons = Markup.inlineKeyboard([
+const yesNoTaskAcceptButtons = Markup.inlineKeyboard([
   Markup.callbackButton('Принимаю', 'acceptTask'),
   Markup.callbackButton('Не принимаю', 'notAcceptTask')
 ])
 
-export const yesNoPunishmentAcceptButtons = Markup.inlineKeyboard([
+const yesNoPunishmentAcceptButtons = Markup.inlineKeyboard([
   Markup.callbackButton('Принимаю', 'acceptPunishment'),
   Markup.callbackButton('Не принимаю', 'notAcceptPunishment')
 ])
+
+module.exports = {
+  getMainAdminMenu,
+  getUsersAdminMenu,
+  getTasksAdminMenu,
+  getPunishmentAdminMenu,
+  getMenuWhenUserNotHavePunish,
+  getMenuWhenUserHavePunish,
+  yesNoBlockUserKeyboard,
+  yesNoAddTaskKeyboard,
+  yesNoRemoveTaskKeyboard,
+  yesNoAddPunishmentKeyboard,
+  yesNoRemovePunishmentKeyboard,
+  yesNoTaskAcceptButtons,
+  yesNoPunishmentAcceptButtons
+}
