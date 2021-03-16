@@ -32,9 +32,14 @@ export function getPunishmentAdminMenu() {
   ]).resize().extra()
 }
 
-export function getUserMenu() {
+export function getMenuWhenUserNotHavePunish() {
   return Markup.keyboard([
     ['Отправить задание'],
+  ]).resize().extra()
+}
+
+export function getMenuWhenUserHavePunish() {
+  return Markup.keyboard([
     ['Отправить наказание']
   ]).resize().extra()
 }

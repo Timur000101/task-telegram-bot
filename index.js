@@ -2,7 +2,6 @@ import Telegraf from "telegraf"
 import session from 'telegraf/session.js'
 import mongoose from "mongoose"
 const emoji = require('node-emoji')
-const CronJob = require('cron').CronJob
 import moment from "moment"
 moment.locale('ru')
 // import constants
@@ -17,7 +16,7 @@ import {
   getUsersAdminMenu, 
   getTasksAdminMenu,
   getPunishmentAdminMenu,
-  getUserMenu,
+  getMenuWhenUserNotHavePunish,
   yesNoTaskAcceptButtons,
   yesNoAddTaskKeyboard,
   yesNoAddPunishmentKeyboard,
@@ -33,9 +32,8 @@ import {
   removeUser, 
   addPunishment, 
   removePunishment,
-  hasPunishmentStart
-  // getUserChatId,
-  // sendUserChatId
+  hasPunishmentStart,
+  startSendTask
 } from "./src/functions"
 
 // Initialization Telegraf constructor
@@ -43,50 +41,13 @@ const bot = new Telegraf(BOT_URL)
 mongoose.connect(DB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
 bot.use(session())
 
+// Send task every day, at 12:00
+startSendTask()
+// Send punishment at 00:00, if user not complited task
 hasPunishmentStart()
-
-
-// Send task to users function
-function startSendTask(ctx) {
-  var job = new CronJob('* * * * * *', async function() {
-    // get all Users
-     var users = await User.find((error, data) => {
-      if(error) {
-        console.log(error)
-      } else {
-        return data
-      }
-    })
-
-    // get all Tasks
-    var tasks = await Task.find((error, data) => {
-      if(error) {
-        console.log(error);
-      } else {
-        return data
-      }
-    })
-
-    for (let i = 0; i < users.length; i++) {
-      const randomIndex = Math.round(0 - 0.5 + Math.random() * ((tasks.length - 1) - 0 + 1))
-      if(tasks[randomIndex].status === true && users[i].admin === false) {
-        await ctx.telegram.sendMessage(users[i].chatId, `Задание на сегодня - "${tasks[randomIndex].text}"${emoji.get('smile')}`)
-        await Task.updateOne({ _id: tasks[randomIndex]._id }, { $set: {status: false} })
-        await User.updateOne({ name: users[i].name }, { $set: { taskIsDone: false } })
-      }
-    }
-    
-  }, null, true);
-  
-  job.start();
-}
-
 
 // Start bot function 
 bot.start(async ctx => {
-  ctx.session.addPunishment = 'Добавить наказание'
-  ctx.session.removePunishment = 'Удалить наказание'
-
   let userName = ctx.from.first_name
   const chatId = ctx.chat.id
   
@@ -102,17 +63,15 @@ bot.start(async ctx => {
   if(!user) {
     User.create({ chatId: chatId, name: userName, userId: users.length + 1 })
     ctx.replyWithHTML(`
-    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`, getUserMenu())
-    startSendTask(ctx)
+    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`, getMenuWhenUserNotHavePunish())
   } else if (user.admin === true) {
     ctx.replyWithHTML(`
     Привет <b>Администратор!</b>\nВыбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
   } else if (user.baned === true) {
     ctx.reply(`Извините Вы заблокированы!`)
-  } else {
+  } else if (user.hasPunishment === false) {
     ctx.replyWithHTML(`
-    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`, getUserMenu())
-    startSendTask(ctx)
+    Привет ${userName}!\nЯ буду давать задания каждый день в 12.00${emoji.get('smile')}`, getMenuWhenUserNotHavePunish())
   }
 })
 
@@ -261,7 +220,8 @@ bot.on('text', ctx => {
         reply_markup: yesNoAddPunishmentKeyboard
       }
     )
-    ctx.session.actionText === ''
+    ctx.session.actionText = ''
+    console.log(ctx.session.actionText);
   } else if (ctx.session.actionText === 'Удалить наказание') {
     console.log('Remove', ctx.session.sendText);
     ctx.reply('Вы действительно хотите удалить наказание:\n\n'+`${ctx.session.sendText}`, 
@@ -269,7 +229,8 @@ bot.on('text', ctx => {
         reply_markup: yesNoRemovePunishmentKeyboard
       }
     )
-    ctx.session.actionText === ''
+    ctx.session.actionText = ''
+    console.log(ctx.session.actionText);
   } else if (ctx.session.actionText === 'Добавить задачу') {
     console.log('Add', ctx.session.sendText);
     ctx.reply(
@@ -279,7 +240,8 @@ bot.on('text', ctx => {
         reply_markup: yesNoAddTaskKeyboard
       }
     )
-    ctx.session.actionText === ''
+    ctx.session.actionText = ''
+    console.log(ctx.session.actionText);
   } else if (ctx.session.actionText === 'Удалить задачу') {
     console.log('Remove', ctx.session.sendText);
     ctx.replyWithHTML(
@@ -289,7 +251,8 @@ bot.on('text', ctx => {
         reply_markup: yesNoRemoveTaskKeyboard
       }
     )
-    ctx.session.actionText === ''
+    ctx.session.actionText = ''
+    console.log(ctx.session.actionText);
   } else if (ctx.session.actionText === 'Заблокировать') {
     console.log('Block', ctx.session.sendText);
     ctx.replyWithHTML(
@@ -299,7 +262,10 @@ bot.on('text', ctx => {
         reply_markup: yesNoBlockUserKeyboard
       }
     )
-    ctx.session.actionText === ''
+    ctx.session.actionText = ''
+    console.log(ctx.session.actionText);
+  } else {
+    ctx.reply("Извините, Вы не можете отпрвавить сообщение, только задание или наказание")
   }
 })
 
@@ -368,8 +334,8 @@ bot.action(['acceptTask', 'notAcceptTask'], async ctx => {
     ctx.replyWithHTML(`<b>Задание принято!</b>`)
     ctx.deleteMessage()
   } else {
-    bot.telegram.sendMessage(user.chatId, `Вашу задачу не принял, повторите попытку! :(`)
-    await User.updateOne({ name: userName }, { $set: { hasPunishment: true } })
+    // await User.updateOne({ name: userName }, { $set: { hasPunishment: true } })
+    bot.telegram.sendMessage(user.chatId, `Вашу задачу не принял, повторите попытку! :(`), 
     ctx.replyWithHTML(`Выбирите действие для выполнение${emoji.get('smile')}`, getMainAdminMenu())
     ctx.deleteMessage()
   }
