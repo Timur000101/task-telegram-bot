@@ -183,7 +183,7 @@ bot.hears('Удалить наказание', ctx => {
 bot.hears('Отправить задание', ctx => {
   ctx.reply('Загрузите фото заданий')
   bot.on('photo', async ctx => {
-    await ctx.telegram.sendPhoto(456418386, ctx.message.photo[0].file_id, 
+    await ctx.telegram.sendPhoto(78923920, ctx.message.photo[0].file_id, 
       { 
         caption: `Задание на проверку от - ${ctx.chat.first_name} `,
         reply_markup: yesNoTaskAcceptButtons
@@ -195,7 +195,7 @@ bot.hears('Отправить задание', ctx => {
 bot.hears('Отправить наказание', ctx => {
   ctx.reply('Загрузите фото наказаний')
   bot.on('photo', async ctx => {
-    await ctx.telegram.sendPhoto(456418386, ctx.message.photo[0].file_id, 
+    await ctx.telegram.sendPhoto(78923920, ctx.message.photo[0].file_id, 
       { 
         caption: `Наказание на проверку от - ${ctx.chat.first_name} `,
         reply_markup: yesNoPunishmentAcceptButtons
